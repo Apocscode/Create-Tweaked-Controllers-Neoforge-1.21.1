@@ -29,7 +29,18 @@ import net.neoforged.fml.common.EventBusSubscriber;
 
 public class ModMainConfigButton extends Button
 {
-    public static final ItemStack ICON = ModItems.TWEAKED_LINKED_CONTROLLER.asStack(); // TODO maybe put an icon
+    private static ItemStack ICON_CACHE = null;
+
+    public static ItemStack getIcon() {
+        if (ICON_CACHE == null) {
+            try {
+                ICON_CACHE = ModItems.TWEAKED_LINKED_CONTROLLER.asStack();
+            } catch (Exception e) {
+                ICON_CACHE = ItemStack.EMPTY;
+            }
+        }
+        return ICON_CACHE;
+    }
 
     public ModMainConfigButton(int x, int y)
     {
@@ -39,7 +50,7 @@ public class ModMainConfigButton extends Button
     @Override
     public void renderString(GuiGraphics graphics, Font pFont, int pColor)
     {
-        graphics.renderItem(ICON, getX() + 2, getY() + 2);
+        graphics.renderItem(getIcon(), getX() + 2, getY() + 2);
     }
 
     public static void click(Button b)
@@ -97,22 +108,26 @@ public class ModMainConfigButton extends Button
     {
 
         @SubscribeEvent
-        public static void onGuiInit(ScreenEvent.Init event) {
+        public static void onGuiInit(ScreenEvent.Init.Post event) {
             Screen gui = event.getScreen();
 
             MenuRows menu = null;
             int rowIdx = 0, offsetX = 0;
-            if (gui instanceof TitleScreen)
-            {
-                menu = MenuRows.CreateMainMenuRows();
-                rowIdx = ModClientConfig.CONFIG_BUTTON_MAIN_MENU_ROW.get();
-                offsetX = ModClientConfig.CONFIG_BUTTON_MAIN_MENU_OFFSET.get();
-            }
-            else if (gui instanceof PauseScreen)
-            {
-                menu = MenuRows.CreateIngameMenuRows();
-                rowIdx = ModClientConfig.CONFIG_BUTTON_INGAME_MENU_ROW.get();
-                offsetX = ModClientConfig.CONFIG_BUTTON_INGAME_MENU_OFFSET.get();
+            try {
+                if (gui instanceof TitleScreen)
+                {
+                    menu = MenuRows.CreateMainMenuRows();
+                    rowIdx = ModClientConfig.CONFIG_BUTTON_MAIN_MENU_ROW.get();
+                    offsetX = ModClientConfig.CONFIG_BUTTON_MAIN_MENU_OFFSET.get();
+                }
+                else if (gui instanceof PauseScreen)
+                {
+                    menu = MenuRows.CreateIngameMenuRows();
+                    rowIdx = ModClientConfig.CONFIG_BUTTON_INGAME_MENU_ROW.get();
+                    offsetX = ModClientConfig.CONFIG_BUTTON_INGAME_MENU_OFFSET.get();
+                }
+            } catch (IllegalStateException e) {
+                return; // Config not loaded yet, skip button creation
             }
 
             if (rowIdx != 0 && menu != null)

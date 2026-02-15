@@ -421,7 +421,9 @@ public class ControlProfile
             hasJoystickInput = true;
             break;
         }
-        for (KeyMapping key : Minecraft.getInstance().options.keyMappings)
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.options == null) return;
+        for (KeyMapping key : mc.options.keyMappings)
         {
             if (key.isUnbound()) continue;
             int id = GetUniqueKeyIndex(key.getKey());
