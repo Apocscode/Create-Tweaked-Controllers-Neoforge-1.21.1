@@ -1,0 +1,138 @@
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.140'
+}
+
+version = project.mod_version
+group = project.mod_group_id
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_version
+        minecraftVersion = project.parchment_mc_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all',
+                '--output', file('src/generated/resources/').getAbsolutePath(),
+                '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+    }
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    maven {
+        // Create, Ponder, Flywheel
+        url = "https://maven.createmod.net"
+    }
+    maven {
+        // Registrate
+        url = "https://mvn.devos.one/snapshots/"
+    }
+    maven {
+        // CC:Tweaked
+        url = "https://maven.squiddev.cc"
+        content { includeGroup("cc.tweaked") }
+    }
+    maven {
+        // JEI
+        url = "https://maven.blamejared.com/"
+    }
+}
+
+dependencies {
+    // Create (slim = excludes bundled deps)
+    implementation("com.simibubi.create:create-${project.minecraft_version}:${project.create_version}:slim") {
+        transitive = false
+    }
+
+    // Ponder (Create's ponder system, separate since Create 6.x)
+    implementation("net.createmod.ponder:Ponder-NeoForge-${project.minecraft_version}:${project.ponder_version}")
+
+    // Flywheel (Create's rendering engine)
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${project.minecraft_version}:${project.flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${project.minecraft_version}:${project.flywheel_version}")
+
+    // Registrate (Create's registration helper)
+    implementation("com.tterrag.registrate:Registrate:${project.registrate_version}")
+
+    // CC:Tweaked (optional compat)
+    compileOnly("cc.tweaked:cc-tweaked-${project.minecraft_version}-core-api:${project.cc_tweaked_version}")
+    compileOnly("cc.tweaked:cc-tweaked-${project.minecraft_version}-forge-api:${project.cc_tweaked_version}")
+    runtimeOnly("cc.tweaked:cc-tweaked-${project.minecraft_version}-forge:${project.cc_tweaked_version}")
+}
+
+// Process neoforge.mods.toml to inject version properties
+def replaceProperties = [
+    minecraft_version_range: project.minecraft_version_range,
+    neo_version_range      : project.neo_version_range,
+    loader_version_range   : project.loader_version_range,
+    mod_id                 : project.mod_id,
+    mod_name               : project.mod_name,
+    mod_license            : project.mod_license,
+    mod_version            : project.mod_version,
+    mod_authors            : project.mod_authors,
+    mod_description        : project.mod_description,
+    create_version_range   : project.create_version_range,
+]
+
+processResources {
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title"     : project.mod_id,
+            "Specification-Vendor"    : project.mod_authors,
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : project.jar.archiveVersion,
+            "Implementation-Vendor"   : project.mod_authors,
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

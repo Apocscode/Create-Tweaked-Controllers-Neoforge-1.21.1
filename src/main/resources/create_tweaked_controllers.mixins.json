@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "com.getitemfromblock.create_tweaked_controllers.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"mixins": [
+		"KineticBlockEntityMixin"
+	],
+	"minVersion": "0.8"
+}
