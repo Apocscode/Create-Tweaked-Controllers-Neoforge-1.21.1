@@ -71,6 +71,13 @@ public class JoystickInputs
     {
         selectedJoystick = id;
         ByteBuffer b = GLFW.glfwGetJoystickButtons(selectedJoystick);
+        FloatBuffer a = GLFW.glfwGetJoystickAxes(selectedJoystick);
+        if (b == null || a == null)
+        {
+            Empty();
+            selectedJoystick = -1;
+            return;
+        }
         buttons = new Vector<>(b.limit());
         storedButtons = new Vector<>(b.limit());
         for (int i = 0; i < b.limit(); i++)
@@ -78,7 +85,6 @@ public class JoystickInputs
             buttons.add(false);
             storedButtons.add(false);
         }
-        FloatBuffer a = GLFW.glfwGetJoystickAxes(selectedJoystick);
         axis = new Vector<>(a.limit());
         storedAxis = new Vector<>(a.limit());
         for (int i = 0; i < a.limit(); i++)
