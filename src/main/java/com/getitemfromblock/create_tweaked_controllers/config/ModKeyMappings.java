@@ -15,6 +15,7 @@ public class ModKeyMappings
     public static KeyMapping KEY_MOUSE_FOCUS;
     public static KeyMapping KEY_MOUSE_RESET;
     public static KeyMapping KEY_CONTROLLER_EXIT;
+    public static KeyMapping KEY_CYCLE_DEVICE;
 
     @SubscribeEvent
 	public static void register(RegisterKeyMappingsEvent event)
@@ -22,6 +23,7 @@ public class ModKeyMappings
         KEY_MOUSE_FOCUS = registerKey("mouse_focus", InputConstants.KEY_LALT, event);
         KEY_MOUSE_RESET = registerKey("mouse_reset", InputConstants.KEY_R, event);
         KEY_CONTROLLER_EXIT = registerKey("controller_exit", InputConstants.KEY_TAB, event);
+        KEY_CYCLE_DEVICE = registerKey("cycle_device", InputConstants.UNKNOWN.getValue(), event);
     }
 
     private static KeyMapping registerKey(String name, int keycode, RegisterKeyMappingsEvent event)

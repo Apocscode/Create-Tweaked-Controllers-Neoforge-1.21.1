@@ -23,6 +23,8 @@
     "create_tweaked_controllers.gui_tab_button": "Button settings",
     "create_tweaked_controllers.gui_tab_axis": "Axis settings",
     "create_tweaked_controllers.gui_button_refresh": "Research gamepad",
+    "create_tweaked_controllers.gui_device_prev": "Previous device",
+    "create_tweaked_controllers.gui_device_next": "Next device",
     "create_tweaked_controllers.gui_gamepad_unavailable": "No gamepad found",
     "create_tweaked_controllers.gui_gamepad_selected": "Selected gamepad: %1$s",
     "create_tweaked_controllers.gui_gamepad_custom": "Using virtual gamepad",
@@ -87,6 +89,7 @@
     "create_tweaked_controllers.keybind.mouse_focus" : "Grab mouse movements",
     "create_tweaked_controllers.keybind.mouse_reset" : "Center mouse cursor",
     "create_tweaked_controllers.keybind.controller_exit" : "Exit controller",
+    "create_tweaked_controllers.keybind.cycle_device" : "Cycle input device",
     
     "itemGroup.create_tweaked_controllers.base": "Create: Tweaked Controllers",
     

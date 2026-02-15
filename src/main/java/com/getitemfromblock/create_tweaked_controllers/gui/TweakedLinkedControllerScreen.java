@@ -13,6 +13,7 @@ import com.getitemfromblock.create_tweaked_controllers.CreateTweakedControllers;
 import com.getitemfromblock.create_tweaked_controllers.config.ModClientConfig;
 import com.getitemfromblock.create_tweaked_controllers.controller.TweakedControlsUtil;
 import com.getitemfromblock.create_tweaked_controllers.controller.TweakedLinkedControllerMenu;
+import com.getitemfromblock.create_tweaked_controllers.input.DeviceEnumerator;
 import com.getitemfromblock.create_tweaked_controllers.input.GamepadInputs;
 import com.simibubi.create.foundation.gui.AllIcons;
 import net.createmod.catnip.gui.element.GuiGameElement;
@@ -38,6 +39,8 @@ public class TweakedLinkedControllerScreen extends AbstractSimiContainerScreen<T
     private IconButton resetButton;
     private IconButton confirmButton;
     private IconButton refreshButton;
+    private IconButton prevDeviceButton;
+    private IconButton nextDeviceButton;
     private IconButton firstTabButton;
     private IconButton secondTabButton;
     private JoystickIcon lStick;
@@ -87,6 +90,16 @@ public class TweakedLinkedControllerScreen extends AbstractSimiContainerScreen<T
             GamepadInputs.SearchGamepad();
         });
         refreshButton.setToolTip(CreateTweakedControllers.translateDirect("gui_button_refresh"));
+        prevDeviceButton = new IconButton(x + background0.width - 120, y + background0.height - 24, AllIcons.I_MTD_LEFT);
+        prevDeviceButton.withCallback(() -> {
+            cycleDevice(-1);
+        });
+        prevDeviceButton.setToolTip(CreateTweakedControllers.translateDirect("gui_device_prev"));
+        nextDeviceButton = new IconButton(x + background0.width - 149, y + background0.height - 24, AllIcons.I_MTD_RIGHT);
+        nextDeviceButton.withCallback(() -> {
+            cycleDevice(1);
+        });
+        nextDeviceButton.setToolTip(CreateTweakedControllers.translateDirect("gui_device_next"));
         firstTabButton = new IconButton(x + 17, y + background0.height - 27, ModIcons.I_BUTTON);
         firstTabButton.withCallback(() -> {
             this.isSecondPage = false;
@@ -102,6 +115,8 @@ public class TweakedLinkedControllerScreen extends AbstractSimiContainerScreen<T
         addRenderableWidget(resetButton);
         addRenderableWidget(confirmButton);
         addRenderableWidget(refreshButton);
+        addRenderableWidget(prevDeviceButton);
+        addRenderableWidget(nextDeviceButton);
         addRenderableWidget(firstTabButton);
         addRenderableWidget(secondTabButton);
         lStick = new JoystickIcon(x + 16, y + 26, ModIcons.I_LEFT_JOYSTICK);
@@ -253,6 +268,40 @@ public class TweakedLinkedControllerScreen extends AbstractSimiContainerScreen<T
     public List<Rect2i> getExtraAreas()
     {
         return extraAreas;
+    }
+
+    /**
+     * Cycle through available gamepad devices in the given direction.
+     * @param direction 1 for next, -1 for previous
+     */
+    private void cycleDevice(int direction)
+    {
+        java.util.List<DeviceEnumerator.DeviceInfo> gamepads = DeviceEnumerator.getGamepads();
+        if (gamepads.isEmpty()) return;
+
+        int currentIndex = GamepadInputs.GetGamepadIndex();
+        int currentPos = -1;
+        for (int i = 0; i < gamepads.size(); i++)
+        {
+            if (gamepads.get(i).index == currentIndex)
+            {
+                currentPos = i;
+                break;
+            }
+        }
+
+        int newPos;
+        if (currentPos < 0)
+        {
+            newPos = 0;
+        }
+        else
+        {
+            newPos = (currentPos + direction + gamepads.size()) % gamepads.size();
+        }
+
+        DeviceEnumerator.DeviceInfo device = gamepads.get(newPos);
+        GamepadInputs.ForceSelectGamepad(device.index);
     }
 
 }

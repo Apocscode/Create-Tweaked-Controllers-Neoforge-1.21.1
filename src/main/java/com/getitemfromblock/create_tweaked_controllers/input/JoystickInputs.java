@@ -6,6 +6,8 @@ import java.util.Vector;
 
 import org.lwjgl.glfw.GLFW;
 
+import com.getitemfromblock.create_tweaked_controllers.config.ModClientConfig;
+
 public class JoystickInputs
 {
     private static Vector<Boolean> buttons = new Vector<>(0);
@@ -14,35 +16,111 @@ public class JoystickInputs
     private static Vector<Float> storedAxis = new Vector<>(0);
 
     protected static int selectedJoystick = -1;
+    private static int forcedJoystickIndex = -1;
+
+    /**
+     * Force the joystick selection to a specific GLFW index.
+     * Set to -1 to return to auto-detection.
+     */
+    public static void ForceSelectJoystick(int index)
+    {
+        forcedJoystickIndex = index;
+        if (index >= 0 && index < 16 && GLFW.glfwJoystickPresent(index))
+        {
+            if (selectedJoystick != index)
+            {
+                selectedJoystick = -1; // Reset so SelectJoystick re-initializes
+                SelectJoystick(index);
+            }
+        }
+        else if (index < 0)
+        {
+            // Return to auto-detection - reset current selection
+            selectedJoystick = -1;
+        }
+    }
+
+    /**
+     * Get the currently forced joystick index, or -1 if auto-detecting.
+     */
+    public static int GetForcedIndex()
+    {
+        return forcedJoystickIndex;
+    }
+
+    /**
+     * Cycle to the next available joystick device.
+     * Returns the new device index, or -1 if no devices found.
+     */
+    public static int CycleJoystick()
+    {
+        int start = selectedJoystick >= 0 ? selectedJoystick + 1 : 0;
+        for (int i = 0; i < 16; i++)
+        {
+            int idx = (start + i) % 16;
+            if (GLFW.glfwJoystickPresent(idx))
+            {
+                ForceSelectJoystick(idx);
+                return idx;
+            }
+        }
+        return -1;
+    }
 
     public static void GetControls()
     {
+        // Check if config has a forced index
+        try
+        {
+            int configForced = ModClientConfig.FORCE_JOYSTICK_INDEX.get();
+            if (configForced != forcedJoystickIndex)
+            {
+                ForceSelectJoystick(configForced);
+            }
+        }
+        catch (Exception e)
+        {
+            // Config not yet loaded, ignore
+        }
+
         if (selectedJoystick < 0)
         {
-            int uniqueJoystickID = -1;
-            for (int i = 0; i < 16 && selectedJoystick < 0; i++)
+            // If a forced index is set, only try that device
+            if (forcedJoystickIndex >= 0)
             {
-                if (!GLFW.glfwJoystickPresent(i)) continue;
-                if (uniqueJoystickID == -1) // At least one joystick is found
+                if (GLFW.glfwJoystickPresent(forcedJoystickIndex))
                 {
-                    uniqueJoystickID = i;
-                }
-                else if (uniqueJoystickID >= 0) // More than one joystick is found
-                {
-                    uniqueJoystickID = -2;
-                }
-                ByteBuffer res = GLFW.glfwGetJoystickButtons(i); // Check for joystick activity
-                if (res == null) continue;
-                for (int b = 0; b < res.limit(); b++)
-                {
-                    if (res.get(b) != GLFW.GLFW_PRESS) continue;
-                    SelectJoystick(i);
-                    break;
+                    SelectJoystick(forcedJoystickIndex);
                 }
             }
-            if (selectedJoystick < 0 && uniqueJoystickID >= 0) // Exactly one joystick is found, no need to check for activity
+            else
             {
-                SelectJoystick(uniqueJoystickID);
+                // Original auto-detection logic
+                int uniqueJoystickID = -1;
+                for (int i = 0; i < 16 && selectedJoystick < 0; i++)
+                {
+                    if (!GLFW.glfwJoystickPresent(i)) continue;
+                    if (uniqueJoystickID == -1)
+                    {
+                        uniqueJoystickID = i;
+                    }
+                    else if (uniqueJoystickID >= 0)
+                    {
+                        uniqueJoystickID = -2;
+                    }
+                    ByteBuffer res = GLFW.glfwGetJoystickButtons(i);
+                    if (res == null) continue;
+                    for (int b = 0; b < res.limit(); b++)
+                    {
+                        if (res.get(b) != GLFW.GLFW_PRESS) continue;
+                        SelectJoystick(i);
+                        break;
+                    }
+                }
+                if (selectedJoystick < 0 && uniqueJoystickID >= 0)
+                {
+                    SelectJoystick(uniqueJoystickID);
+                }
             }
         }
         if (selectedJoystick >= 0 && GLFW.glfwJoystickPresent(selectedJoystick))

@@ -16,6 +16,8 @@ public class ModClientConfig
     public static final ModConfigSpec.ConfigValue<Integer> CONFIG_BUTTON_INGAME_MENU_ROW;
     public static final ModConfigSpec.ConfigValue<Integer> CONFIG_BUTTON_INGAME_MENU_OFFSET;
     public static final ModConfigSpec.ConfigValue<ControllerLayoutType> CONTROLLER_LAYOUT_TYPE;
+    public static final ModConfigSpec.ConfigValue<Integer> FORCE_JOYSTICK_INDEX;
+    public static final ModConfigSpec.ConfigValue<Integer> FORCE_GAMEPAD_INDEX;
 
     static {
         BUILDER.push("Configs for Create: Tweaked Controllers");
@@ -38,6 +40,10 @@ public class ModClientConfig
             .defineInRange("config_button_main_ingame_offset", 4, Integer.MIN_VALUE, Integer.MAX_VALUE);
         CONTROLLER_LAYOUT_TYPE = BUILDER.comment("What is the layout used for the display controller in the config menus, default is XBOX")
             .defineEnum("controller_layout_type", ControllerLayoutType.XBOX, ControllerLayoutType.values());
+        FORCE_JOYSTICK_INDEX = BUILDER.comment("Force the mod to use a specific joystick by its GLFW index (0-15). Set to -1 for auto-detection (default). Use the 'Cycle Device' keybind in-game to find the right index.")
+            .defineInRange("force_joystick_index", -1, -1, 15);
+        FORCE_GAMEPAD_INDEX = BUILDER.comment("Force the mod to use a specific gamepad by its GLFW index (0-15). Set to -1 for auto-detection (default). Use the 'Cycle Device' keybind in-game to find the right index.")
+            .defineInRange("force_gamepad_index", -1, -1, 15);
 
         BUILDER.pop();
         SPEC = BUILDER.build();

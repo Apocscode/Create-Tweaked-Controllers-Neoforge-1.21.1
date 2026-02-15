@@ -15,35 +15,107 @@ public class GamepadInputs
 
     protected static GLFWGamepadState state = null;
     protected static int selectedGamepad = -1;
+    private static int forcedGamepadIndex = -1;
+
+    /**
+     * Force the gamepad selection to a specific GLFW index.
+     * Set to -1 to return to auto-detection.
+     */
+    public static void ForceSelectGamepad(int index)
+    {
+        forcedGamepadIndex = index;
+        if (index >= 0 && index < 16 && GLFW.glfwJoystickPresent(index) && GLFW.glfwJoystickIsGamepad(index))
+        {
+            selectedGamepad = index;
+        }
+        else if (index < 0)
+        {
+            selectedGamepad = -1;
+        }
+    }
+
+    /**
+     * Get the currently forced gamepad index, or -1 if auto-detecting.
+     */
+    public static int GetForcedIndex()
+    {
+        return forcedGamepadIndex;
+    }
+
+    /**
+     * Cycle to the next available gamepad device.
+     * Returns the new device index, or -1 if no devices found.
+     */
+    public static int CycleGamepad()
+    {
+        int start = selectedGamepad >= 0 ? selectedGamepad + 1 : 0;
+        for (int i = 0; i < 16; i++)
+        {
+            int idx = (start + i) % 16;
+            if (GLFW.glfwJoystickPresent(idx) && GLFW.glfwJoystickIsGamepad(idx))
+            {
+                ForceSelectGamepad(idx);
+                return idx;
+            }
+        }
+        return -1;
+    }
 
     public static void GetControls()
     {
         CheckState();
+
+        // Check if config has a forced index
+        try
+        {
+            int configForced = ModClientConfig.FORCE_GAMEPAD_INDEX.get();
+            if (configForced != forcedGamepadIndex)
+            {
+                ForceSelectGamepad(configForced);
+            }
+        }
+        catch (Exception e)
+        {
+            // Config not yet loaded, ignore
+        }
+
         if (selectedGamepad < 0)
         {
-            int uniqueGamepadID = -1;
-            for (int i = 0; i < 16 && selectedGamepad < 0; i++)
+            // If a forced index is set, only try that device
+            if (forcedGamepadIndex >= 0)
             {
-                if (!GLFW.glfwJoystickIsGamepad(i)) continue;
-                if (uniqueGamepadID == -1) // At least one gamepad is found
+                if (GLFW.glfwJoystickPresent(forcedGamepadIndex) && GLFW.glfwJoystickIsGamepad(forcedGamepadIndex))
                 {
-                    uniqueGamepadID = i;
-                }
-                else if (uniqueGamepadID >= 0) // More than one gamepad is found
-                {
-                    uniqueGamepadID = -2;
-                }
-                GLFW.glfwGetGamepadState(i, state); // Check for gamepad activity
-                for (int b = 0; b < 15; b++)
-                {
-                    if (state.buttons(b) == 0) continue;
-                    selectedGamepad = i;
-                    break;
+                    selectedGamepad = forcedGamepadIndex;
                 }
             }
-            if (selectedGamepad < 0 && uniqueGamepadID >= 0) // Exactly one gamepad is found, no need to check for activity
+            else
             {
-                selectedGamepad = uniqueGamepadID;
+                // Original auto-detection logic
+                int uniqueGamepadID = -1;
+                for (int i = 0; i < 16 && selectedGamepad < 0; i++)
+                {
+                    if (!GLFW.glfwJoystickIsGamepad(i)) continue;
+                    if (uniqueGamepadID == -1)
+                    {
+                        uniqueGamepadID = i;
+                    }
+                    else if (uniqueGamepadID >= 0)
+                    {
+                        uniqueGamepadID = -2;
+                    }
+                    GLFW.glfwGetGamepadState(i, state);
+                    for (int b = 0; b < 15; b++)
+                    {
+                        if (state.buttons(b) == 0) continue;
+                        selectedGamepad = i;
+                        break;
+                    }
+                }
+                if (selectedGamepad < 0 && uniqueGamepadID >= 0)
+                {
+                    selectedGamepad = uniqueGamepadID;
+                }
             }
         }
         if (selectedGamepad < 0 || !GLFW.glfwJoystickIsGamepad(selectedGamepad))

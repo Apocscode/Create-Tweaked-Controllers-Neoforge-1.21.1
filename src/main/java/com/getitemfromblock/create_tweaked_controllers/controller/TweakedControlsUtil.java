@@ -2,10 +2,14 @@ package com.getitemfromblock.create_tweaked_controllers.controller;
 
 import com.getitemfromblock.create_tweaked_controllers.config.ModClientConfig;
 import com.getitemfromblock.create_tweaked_controllers.config.ModKeyMappings;
+import com.getitemfromblock.create_tweaked_controllers.input.DeviceEnumerator;
 import com.getitemfromblock.create_tweaked_controllers.input.GamepadInputs;
 import com.getitemfromblock.create_tweaked_controllers.input.JoystickInputs;
 import com.getitemfromblock.create_tweaked_controllers.input.MouseCursorHandler;
 import com.simibubi.create.foundation.utility.ControlsUtil;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 public class TweakedControlsUtil
 {
@@ -15,6 +19,7 @@ public class TweakedControlsUtil
     private static boolean isFocusActive = false;
     private static boolean wasFocusActive = false;
     private static ControlType controlType = ControlType.KEYBOARD_MOUSE;
+    private static boolean lastCycleKeyState = false;
 
     public static ControlType GetActiveProfileType()
     {
@@ -120,6 +125,7 @@ public class TweakedControlsUtil
 
     public static void Update(boolean useFullPrec)
     {
+        HandleCycleDevice();
         if (ModClientConfig.USE_CUSTOM_MAPPINGS.get())
         {
             //BackgroundUpdate();
@@ -136,6 +142,46 @@ public class TweakedControlsUtil
             FillGamepadInputs(useFullPrec);
         }
         
+    }
+
+    private static void HandleCycleDevice()
+    {
+        if (ModKeyMappings.KEY_CYCLE_DEVICE == null) return;
+        boolean pressed = ControlsUtil.isActuallyPressed(ModKeyMappings.KEY_CYCLE_DEVICE);
+        if (pressed && !lastCycleKeyState)
+        {
+            lastCycleKeyState = true;
+            if (ModClientConfig.USE_CUSTOM_MAPPINGS.get())
+            {
+                // Cycle joystick device
+                int newIdx = JoystickInputs.CycleJoystick();
+                String name = newIdx >= 0 ? DeviceEnumerator.getDeviceName(newIdx) : null;
+                if (name == null) name = "None";
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null)
+                {
+                    mc.player.displayClientMessage(
+                        Component.literal("[Tweaked Controllers] Joystick: " + newIdx + " - " + name), true);
+                }
+            }
+            else
+            {
+                // Cycle gamepad device
+                int newIdx = GamepadInputs.CycleGamepad();
+                String name = newIdx >= 0 ? DeviceEnumerator.getDeviceName(newIdx) : null;
+                if (name == null) name = "None";
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null)
+                {
+                    mc.player.displayClientMessage(
+                        Component.literal("[Tweaked Controllers] Gamepad: " + newIdx + " - " + name), true);
+                }
+            }
+        }
+        else if (!pressed)
+        {
+            lastCycleKeyState = false;
+        }
     }
 
     public static void FillInputs(boolean useFullPrec)
