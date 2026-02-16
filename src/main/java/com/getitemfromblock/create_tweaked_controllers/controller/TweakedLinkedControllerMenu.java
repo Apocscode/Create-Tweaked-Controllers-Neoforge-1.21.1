@@ -64,7 +64,7 @@ public class TweakedLinkedControllerMenu extends GhostItemMenu<ItemStack>
     @Override
     protected ItemStackHandler createGhostInventory()
     {
-        return TweakedLinkedControllerItem.getFrequencyItems(contentHolder);
+        return TweakedLinkedControllerItem.getFrequencyItems(contentHolder, playerInventory.player.registryAccess());
     }
 
     protected static final int[][] guiItemSlots =

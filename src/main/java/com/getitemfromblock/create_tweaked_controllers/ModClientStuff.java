@@ -29,6 +29,5 @@ public class ModClientStuff
             ControllerHandler.Register();
         }
         MouseCursorHandler.InitValues();
-        //OverlayRegistry.registerOverlayAbove(ForgeIngameGui.HOTBAR_ELEMENT, "Create: Tweaked Controller's Tweaked Linked Controller", TweakedLinkedControllerClientHandler.OVERLAY);
     }
 }

@@ -22,6 +22,9 @@ public class ModBlocks
             .blockstate((c, p) -> p.horizontalBlock(c.get(), p.models()
                 .getExistingFile(p.mcLoc("block/lectern"))))
             .loot((lt, block) -> lt.dropOther(block, Blocks.LECTERN))
+            .item()
+                .model((ctx, prov) -> prov.withExistingParent(ctx.getName(), prov.mcLoc("block/lectern")))
+                .build()
             .register();
 
     public static void register() {}

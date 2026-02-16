@@ -9,6 +9,7 @@ import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.redstone.link.RedstoneLinkNetworkHandler.Frequency;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -127,18 +128,28 @@ public class TweakedLinkedControllerItem extends Item implements MenuProvider
         TweakedLinkedControllerClientHandler.toggle();
     }
 
-    public static ItemStackHandler getFrequencyItems(ItemStack stack)
+    public static ItemStackHandler getFrequencyItems(ItemStack stack, HolderLookup.Provider registries)
     {
         ItemStackHandler newInv = new ItemStackHandler(50);
         if (ModItems.TWEAKED_LINKED_CONTROLLER.get() != stack.getItem())
             throw new IllegalArgumentException("Cannot get frequency items from non-controller: " + stack);
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         CompoundTag invNBT = customData.copyTag().getCompound("Items");
-        // TODO: deserializeNBT needs HolderLookup.Provider in 1.21 - pass from caller context
-        // For now using a minimal provider; callers should be updated to pass registries
         if (!invNBT.isEmpty())
-            newInv.deserializeNBT(net.minecraft.core.RegistryAccess.EMPTY, invNBT);
+            newInv.deserializeNBT(registries, invNBT);
         return newInv;
+    }
+
+    public static ItemStackHandler getFrequencyItems(ItemStack stack)
+    {
+        return getFrequencyItems(stack, net.minecraft.core.RegistryAccess.EMPTY);
+    }
+
+    public static Couple<Frequency> toFrequency(ItemStack controller, int slot, HolderLookup.Provider registries)
+    {
+        ItemStackHandler frequencyItems = getFrequencyItems(controller, registries);
+        return Couple.create(Frequency.of(frequencyItems.getStackInSlot(slot * 2)),
+            Frequency.of(frequencyItems.getStackInSlot(slot * 2 + 1)));
     }
 
     public static Couple<Frequency> toFrequency(ItemStack controller, int slot)

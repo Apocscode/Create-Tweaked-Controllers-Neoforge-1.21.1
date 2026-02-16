@@ -8,10 +8,13 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 
 import net.createmod.catnip.net.base.BasePacketPayload;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class TweakedLinkedControllerBindPacket extends TweakedLinkedControllerPacketBase
@@ -56,7 +59,7 @@ public class TweakedLinkedControllerBindPacket extends TweakedLinkedControllerPa
         if (player.isSpectator())
             return;
 
-        ItemStackHandler frequencyItems = TweakedLinkedControllerItem.getFrequencyItems(heldItem);
+        ItemStackHandler frequencyItems = TweakedLinkedControllerItem.getFrequencyItems(heldItem, player.registryAccess());
         LinkBehaviour linkBehaviour = BlockEntityBehaviour.get(player.level(), linkLocation, LinkBehaviour.TYPE);
         if (linkBehaviour == null)
             return;
@@ -65,8 +68,10 @@ public class TweakedLinkedControllerBindPacket extends TweakedLinkedControllerPa
             .forEachWithContext((f, first) -> frequencyItems.setStackInSlot(button * 2 + (first ? 0 : 1), f.getStack()
                 .copy()));
 
-        // TODO: Port to DataComponents system - heldItem.getTag() is removed in 1.21
-        // heldItem.getTag().put("Items", frequencyItems.serializeNBT());
+        // Save frequency items back to the controller using DataComponents
+        CompoundTag tag = new CompoundTag();
+        tag.put("Items", frequencyItems.serializeNBT(player.registryAccess()));
+        heldItem.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     @Override

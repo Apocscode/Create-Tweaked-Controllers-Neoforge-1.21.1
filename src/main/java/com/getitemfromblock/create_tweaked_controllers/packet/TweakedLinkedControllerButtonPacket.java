@@ -81,7 +81,7 @@ public class TweakedLinkedControllerButtonPacket extends TweakedLinkedController
         for (int i = 0; i < 15; ++i)
         {
             boolean buttonValue = (buttonStates & (1 << i)) != 0;
-            Couple<Frequency> targetFreq = TweakedLinkedControllerItem.toFrequency(heldItem, i);
+            Couple<Frequency> targetFreq = TweakedLinkedControllerItem.toFrequency(heldItem, i, player.registryAccess());
             int target = buttonCouples.indexOf(targetFreq);
             if (target >= 0)
             {

@@ -5,7 +5,9 @@ import com.getitemfromblock.create_tweaked_controllers.input.MouseCursorHandler;
 import com.getitemfromblock.create_tweaked_controllers.controller.TweakedLinkedControllerClientHandler;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,11 +27,7 @@ public class ModClientEvents
         if (!isGameActive())
             return;
 
-        if (Minecraft.getInstance().screen != null)
-        {
-            TweakedLinkedControllerClientHandler.tick();
-            return;
-        }
+        TweakedLinkedControllerClientHandler.tick();
     }
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -56,6 +54,15 @@ public class ModClientEvents
                 .orElseThrow(() -> new IllegalStateException("CreateTweakedControllers mod container missing on LoadComplete"));
             container.registerExtensionPoint(IConfigScreenFactory.class,
                 (mc, previousScreen) -> new ModConfigScreen(previousScreen));
+        }
+
+        @SubscribeEvent
+        public static void registerGuiLayers(RegisterGuiLayersEvent event)
+        {
+            event.registerAboveAll(
+                ResourceLocation.fromNamespaceAndPath(CreateTweakedControllers.ID, "linked_controller_overlay"),
+                TweakedLinkedControllerClientHandler.OVERLAY
+            );
         }
     }
 }

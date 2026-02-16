@@ -129,7 +129,7 @@ public class TweakedLinkedControllerAxisPacket extends TweakedLinkedControllerPa
             {
                 dt = output.axis[i - 4];
             }
-            Couple<Frequency> targetFreq = TweakedLinkedControllerItem.toFrequency(heldItem, i + 15);
+            Couple<Frequency> targetFreq = TweakedLinkedControllerItem.toFrequency(heldItem, i + 15, player.registryAccess());
             int target = axisCouples.indexOf(targetFreq);
             if (target >= 0)
             {
