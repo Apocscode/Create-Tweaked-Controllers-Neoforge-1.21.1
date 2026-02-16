@@ -31,7 +31,12 @@ import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.items.ItemStackHandler;
+
+import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
+
+import java.util.function.Consumer;
 
 public class TweakedLinkedControllerItem extends Item implements MenuProvider
 {
@@ -172,7 +177,11 @@ public class TweakedLinkedControllerItem extends Item implements MenuProvider
         return getDescription();
     }
 
-    // TODO: In 1.21, custom item rendering is registered via RegisterClientExtensionsEvent
-    // or Registrate's .customRenderer() instead of initializeClient/IClientItemExtensions
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void initializeClient(Consumer<IClientItemExtensions> consumer)
+    {
+        consumer.accept(SimpleCustomRenderer.create(this, new TweakedLinkedControllerItemRenderer()));
+    }
 
 }
